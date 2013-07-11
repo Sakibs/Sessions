@@ -1,0 +1,200 @@
+function displayDate()
+{
+    document.getElementById("demo").innerHTML=Date();
+}
+
+function createTab()
+{
+    // Statement 1
+    //document.getElementById("demo").innerHTML=Date();
+    chrome.tabs.create({url:"chrome://newtab"});
+    // Statement 2
+    // chrome.tabs.update({url:"http://en.wikipedia.org"});
+
+}
+
+function listTabs()
+{
+    chrome.tabs.getSelected(null,function(tab) {
+        var tablink = tab.url;
+        var theDiv = document.getElementById("tab_list");
+        var content = document.createTextNode(tablink);
+        theDiv.appendChild(content);
+
+    });
+}  
+
+document.addEventListener('DOMContentLoaded', function () {
+    var test = document.createTextNode("Script Succeeded");
+    
+    open_tab.addEventListener('click', function() {
+        createTab();
+    });
+
+    list_tabs.addEventListener('click', function(){
+        listTabs();
+    });
+
+    document.body.appendChild(test);
+
+});
+
+<!doctype html>
+<html>
+  <head>
+    <title>Sessions Popup</title>
+    <style>
+      body {
+        width: 400px;
+        overflow-x: hidden;
+      }
+    </style>
+    <script src="test_src.js"></script>
+  </head>
+  <body>
+    Sessions
+    <hr>
+    <br>
+    <button id="open_tab" type="button">New Tab</button><br>
+    <button id="list_tabs" type="button">List Tabs</button><br>
+    <hr>
+    List of Tabs:
+    <br>
+    <div id="tab_list">
+      
+    </div>
+    <hr>
+  </body>
+</html>
+
+
+**************
+
+
+function displayDate()
+{
+    document.getElementById("demo").innerHTML=Date();
+}
+
+function createTab()
+{
+    // Statement 1
+    //document.getElementById("demo").innerHTML=Date();
+    chrome.tabs.create({url:"chrome://newtab"});
+    // Statement 2
+    // chrome.tabs.update({url:"http://en.wikipedia.org"});
+
+}
+
+function listTabs()
+{
+
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    var test = document.createTextNode("Script Succeeded");
+    
+    open_tab.addEventListener('click', function() {
+        createTab();
+    });
+
+    document.body.appendChild(test);
+
+});
+
+
+
+
+<body>
+    Sessions
+    <hr>
+    <br>
+    
+    Button: Save Session
+    <button id="open_tab" type="button">Open Tab</button>
+    <button id="list_tabs" type="button">List Tabs</button>
+
+    <div id="tab_list">
+      List of Open Tabs
+      -----------------
+      <br>
+    </div>
+
+
+
+
+function displayDate()
+    {
+      document.getElementById("demo").innerHTML=Date();
+    }
+
+    function createTab()
+    {
+        alert(3);
+        // Statement 1
+        document.getElementById("demo").innerHTML=Date();
+        chrome.tabs.create({url:"http://www.google.com"});
+        // Statement 2
+        // chrome.tabs.update({url:"http://en.wikipedia.org"});
+        alert(4);
+
+    }
+
+    //
+    document.addEventListener('DOMContentLoaded', function () {
+        var test = document.createTextNode("New paragraph");
+        //chrome.browserAction.onClicked.addListener(createTab);
+        document.body.appendChild(test);
+    });
+
+---------------------------------------
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sessions Popup</title>
+    <style>
+      body {
+        width: 400px;
+        overflow-x: hidden;
+      }
+    </style>
+
+    <script>
+    function displayDate()
+    {
+      document.getElementById("demo").innerHTML=Date();
+    }
+
+    function createTab()
+    {
+        alert(3);
+        // Statement 1
+        document.getElementById("demo").innerHTML=Date();
+        chrome.tabs.create({url:"http://www.google.com"});
+        // Statement 2
+        // chrome.tabs.update({url:"http://en.wikipedia.org"});
+        alert(4);
+
+    }
+
+    //
+    document.addEventListener('DOMContentLoaded', function () {
+        var test = document.createTextNode("New paragraph");
+        //chrome.browserAction.onClicked.addListener(createTab);
+        document.body.appendChild(test);
+    });
+    </script>
+  </head>
+  <body>
+    Sessions
+    <hr>    
+    Button: 
+    <button id="add_text" type="button">Button</button>
+    <button type="button" onclick="createTab()">Open Tab</button>
+
+    <p id="demo">Date Appears here</p>
+
+  </body>
+</html>
+
