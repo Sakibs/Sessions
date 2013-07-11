@@ -16,13 +16,24 @@ function createTab()
 function listTabs()
 {
     var theDiv = document.getElementById("tab_list");
-    chrome.tabs.getSelected(null,function(tab) {
+    /*chrome.tabs.getSelected(null,function(tab) {
         var tablink = tab.url;
         //var theDiv = document.getElementById("tab_list");
         var content = document.createTextNode(tablink);
         theDiv.appendChild(content);
-
     });
+    */
+    chrome.tabs.query({}, function(tab){
+        for(var i=0; i<tab.length; i++)
+        {
+            var br = document.createElement("br");
+            var content = document.createTextNode(tab[i].url);
+
+            theDiv.appendChild(content);
+            theDiv.appendChild(br);
+
+        }
+  });
 }  
 
 document.addEventListener('DOMContentLoaded', function () {
