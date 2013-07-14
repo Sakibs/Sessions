@@ -2,26 +2,25 @@
 <html>
   <head>
     <title>Sessions Popup</title>
-    <style>
-      body {
-        width: 400px;
-        overflow-x: hidden;
-      }
-    </style>
-    <script src="test_src.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+    <script src="code.js"></script>
   </head>
   <body>
     Sessions
     <hr>
-    <br>
-    <button id="open_tab" type="button">New Tab</button><br>
-    <button id="list_tabs" type="button">List Tabs</button><br>
+    <button id="b_new_sesh" type="button">New</button>
+    <button id="b_save_as" type="button">Save as</button><br>
     <hr>
-    List of Tabs:
-    <br>
-    <div id="tab_list">
-      
+    <div class="cur_ctnr">
+    Current
+      <div class="cur_info_box">
+        Session Name
+      </div>
     </div>
     <hr>
+
+    <div class="my_seshs_ctnr">
+    </div>
+
   </body>
 </html>
