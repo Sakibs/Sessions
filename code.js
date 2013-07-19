@@ -37,7 +37,6 @@ function listTabs()
         //debugDiv.innerHTML+=j;
 
         debugDiv.innerHTML += "2<br>";
-
         
         var channels = "Testing";
 
@@ -53,7 +52,8 @@ function listTabs()
 		debugDiv.innerHTML += "3<br>";
 
 		storage.get(myTestVar,function(result){
-			//debugDiv.innerHTML+=result;
+			//console.log("hel");
+		  //debugDiv.innerHTML+=myTestVar;
 		  console.log(myTestVar,result);
 		  //console output = myVariableKeyName {myTestVar:'my test var'}
 		});
