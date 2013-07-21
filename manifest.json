@@ -3,7 +3,7 @@
 
   "name": "Sessions",
   "description": "An extension to save all tabs in a work session and easily switch between different sessions",
-  "version": "0.3",
+  "version": "0.4",
 
   "permissions": ["tabs", "storage"],
   "browser_action": {

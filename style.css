@@ -1,6 +1,6 @@
 body {
 	width: 400px;
-	overflow: hidden;
+	overflow: scroll;
 }
 
 .cur_ctnr{
