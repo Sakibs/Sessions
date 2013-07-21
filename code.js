@@ -38,29 +38,30 @@ function listTabs()
 
         debugDiv.innerHTML += "2<br>";
         
-        var channels = "Testing";
+        var data = "This is the data";
 
         var storage = chrome.storage.local;
 
-		var myTestVar = 'myVariableKeyName';
-
-		var obj= {};
-
-		obj[myTestVar] = 'my test var';
-
-		storage.set(obj);
+		
+		storage.set({'s_data': data});
 		debugDiv.innerHTML += "3<br>";
 
-		storage.get(myTestVar,function(result){
-			//console.log("hel");
+		storage.get('test',function(result){
+            if(!result)
+            {
+                debugDiv.innerHTML += result.s_data;
+			     console.log(result);
+            }
+            else
+            {
+                console.log("Variable in get not found, empty data");
+            }
 		  //debugDiv.innerHTML+=myTestVar;
-		  console.log(myTestVar,result);
 		  //console output = myVariableKeyName {myTestVar:'my test var'}
 		});
-
         
     
-        debugDiv.innerHTML += "4<br>";
+        debugDiv.innerHTML += "4a<br>";
 
         /*
         for(var i=0; i<tabs.length; i++)
