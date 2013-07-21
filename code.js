@@ -72,7 +72,16 @@ function tabs_save(){
 } //tabs_save
 
 function tabs_load(){
-  
+  storage.get('saved_session', function(items) {
+    if (items.saved_session) {
+      console.log(items.saved_session);
+      document.getElementById("cur_info_box").innerHTML = "";
+      document.getElementById("cur_info_box").innerHTML += items.saved_session;
+    }
+    else {
+      console.log("LOAD FAILED!!!");
+    }
+  });
 }
 
 function createTab()
@@ -82,7 +91,7 @@ function createTab()
 
 
 document.addEventListener('DOMContentLoaded', function () {
-  var test = document.createTextNode("Script Succeeded");
+  var test = document.createTextNode("Script Succeeded 2");
  	debug = document.getElementById("debugging");   
   storage = chrome.storage.local; 
   b_load.addEventListener('click', function() {
@@ -94,19 +103,15 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
 
-  /*
-  storage.get('cur_session', function(result){
-    var infoDiv = document.getElementById("cur_info_box");
-    if(!result) 
-    {
-      infoDiv.innerHTML = result.name;
+  storage.get('saved_session', function(items) {
+    if (items.saved_session) {
+      console.log(items.saved_session);
+      document.getElementById("cur_info_box").innerHTML += items.saved_session;
     }
-    else
-    {
-      infoDiv.innerHTML = "No stored session";
+    else {
+      console.log("BEGINNING LOAD FAILED!!!");
     }
   });
-  */
 
   debug.appendChild(test);
 

@@ -1,6 +1,5 @@
 body {
-	width: 400px;
-	overflow: scroll;
+	width: 700px;
 }
 
 .cur_ctnr{
@@ -9,5 +8,6 @@ body {
 
 .cur_info_box{
 	padding: 0px 10px 0px 10px;
+	overflow: scroll;
 }
 
