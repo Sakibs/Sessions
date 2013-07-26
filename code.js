@@ -1,13 +1,32 @@
 /*
 	Variable
 */
-var debug;
+
 //var storage;
 
+/** Helper Functions **/
 function displayDate()
 {
   document.getElementById("demo").innerHTML=Date();
 }
+
+/** End Helper Functions **/
+function load_data(){
+  storage.get('saved_session', function(items) {
+    if (items.saved_session) {
+      console.log(items.saved_session);
+      var session_data = JSON.parse(items.saved_session);
+
+      document.getElementById("cur_name_box").innerHTML = "";
+      document.getElementById("cur_name_box").innerHTML += session_data.name;
+      document.getElementById("cur_info_box").innerHTML = "";
+      document.getElementById("cur_info_box").innerHTML += session_data.tab_info;
+    }
+    else {
+      console.log("** Load_data Failed!");
+    }
+  }); //storage.get
+} //load_data
 
 function tabs_save(){
   var open_tabs = [];
@@ -18,7 +37,8 @@ function tabs_save(){
       //console.log(tabs[i].url);
       open_tabs.push({
         active: tabs[i].active,
-        url: tabs[i].url
+        url: tabs[i].url,
+        title: tabs[i].title
       });
     }
 
@@ -41,33 +61,6 @@ function tabs_save(){
         console.log("FAILED!!!");
       }
     });
-
-
-    
-/*
-    var cur_session = { name: Date(), tab_info: open_tabs};
-    //cur_session.tab_info = open_tabs;
-
-    console.log(JSON.stringify(cur_session));
-    var to_store = JSON.stringify(cur_session);
-    storage.set({'last_saved': to_store});
-
-    storage.get('last_saved', function(result){
-      var infoDiv = document.getElementById("cur_info_box");
-      if(!result) 
-      {
-        console.log("** Found session -- "+result);
-      }
-      else
-      {
-        console.log("Session was not saved!");
-      }
-    });
-
-*/
-    //console.log(open_tabs.length);
-    //console.log(JSON.stringify(open_tabs));
-    //debug.innerHTML+="<br>"+JSON.stringify(open_tabs);
   }); //chrome.tabs.query
 } //tabs_save
 
@@ -75,12 +68,33 @@ function tabs_load(){
   storage.get('saved_session', function(items) {
     if (items.saved_session) {
       console.log(items.saved_session);
+      document.getElementById("cur_name_box").innerHTML = "";
+      document.getElementById("cur_name_box").innerHTML += items.saved_session.name;
       document.getElementById("cur_info_box").innerHTML = "";
       document.getElementById("cur_info_box").innerHTML += items.saved_session;
     }
     else {
       console.log("LOAD FAILED!!!");
     }
+  }); //storage.get
+} //tabs_load
+
+function tabs_closeAll(){
+  chrome.tabs.query({currentWindow: true}, function(tabs){
+    console.log("Total tabs: " + tabs.length);
+
+    //create array to hold tab Ids and push all tab ids from query in.
+    var tabIdArr = []
+    for(var i=0; i<tabs.length; i++)
+    {
+      tabIdArr.push(tabs[i].id);
+    }
+
+    chrome.tabs.create({url:"chrome://newtab"});
+    chrome.tabs.remove(tabIdArr, function(){
+      console.log("All tabs closed!");
+    });
+    
   });
 }
 
@@ -90,8 +104,9 @@ function createTab()
 }
 
 
+
 document.addEventListener('DOMContentLoaded', function () {
-  var test = document.createTextNode("Script Succeeded 2");
+  var test = document.createTextNode("Script Succeeded 3");
  	debug = document.getElementById("debugging");   
   storage = chrome.storage.local; 
   b_load.addEventListener('click', function() {
@@ -102,8 +117,12 @@ document.addEventListener('DOMContentLoaded', function () {
 	  tabs_save();
   });
 
+  b_closeAll.addEventListener('click', function(){
+    tabs_closeAll();
+  });
 
-  storage.get('saved_session', function(items) {
+
+  /*storage.get('saved_session', function(items) {
     if (items.saved_session) {
       console.log(items.saved_session);
       document.getElementById("cur_info_box").innerHTML += items.saved_session;
@@ -112,6 +131,8 @@ document.addEventListener('DOMContentLoaded', function () {
       console.log("BEGINNING LOAD FAILED!!!");
     }
   });
+  */
+  load_data();
 
   debug.appendChild(test);
 
