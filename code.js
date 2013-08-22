@@ -1,16 +1,10 @@
-/*
-	Variable
-*/
+/* GLOBAL VARIABLES */
+var storage;
+var id_active;
 
-//var storage;
+var sessionData;
+/********************/
 
-/** Helper Functions **/
-function displayDate()
-{
-  document.getElementById("demo").innerHTML=Date();
-}
-
-/** End Helper Functions **/
 function load_data(){
   storage.get('saved_session', function(items) {
     if (items.saved_session) {
@@ -45,7 +39,6 @@ function tabs_save(){
   chrome.tabs.query({currentWindow: true}, function(tabs){
     for(var i=0; i<tabs.length; i++)
     {
-      //console.log(tabs[i].url);
       open_tabs.push({
         active: tabs[i].active,
         url: tabs[i].url,
@@ -53,13 +46,8 @@ function tabs_save(){
       });
     }
 
-    var cur_session = { name: Date(), tab_info: open_tabs};
-    //cur_session.tab_info = open_tabs;
+    var cur_session = { name: Date(), tab_info: open_tabs };
 
-    //console.log(JSON.stringify(cur_session));
-    //var to_store = JSON.stringify(cur_session);
-
-    var storage = chrome.storage.local;
     storage.set({'saved_session': JSON.stringify(cur_session)}, function() {
       console.log("data saved");
     });
@@ -91,24 +79,73 @@ function tabs_closeAll(){
     }
 
     chrome.tabs.create({url:"chrome://newtab"});
-    chrome.tabs.remove(tabIdArr, function(){
-      console.log("All tabs closed!");
-    });
-    
+    chrome.tabs.remove(tabIdArr);   
   });
 }
 
-function createTab()
-{
-  chrome.tabs.create({url:"chrome://newtab"});
+function saveSessionData() {
+  storage.get('session_data', function(items) {
+    if (items.saved_session) {
+      console.log(items.saved_session);
+    }
+    else {
+      console.log("No SessionData Setting Everything Up!!!");
+    }
+  });
 }
 
+function loadSavedSessions() {
+  
+}
 
+function onPopupLoad() {
+  storage.get('sessionData', function(items) {
+    if (items.sessionData) {
+      console.log(items.sessionData);
+      sessionData = items.sessionData;
+    }
+    else {
+      console.log("No SessionData Setting Everything Up!!!");
+      init_setup();
+    }
+  });
+
+  if(sessionData.active_session == "") {
+    console.log("No Active Session, listing open tabs"); 
+  }
+
+  //then render saved sessions
+
+
+}
+
+//Initial setup function
+//called when extension first started or if local data is cleared
+function init_setup(){
+  var init_active = "";
+  var init_saved = [];
+
+  sessionData = {active_session: init_active, saved_sessions: init_saved};
+  console.log(JSON.stringify(sessionData));
+
+  storage.set({'sessionData': JSON.stringify(sessionData)}, function() {
+      console.log("Initial data successfully saved.");
+  });
+
+}
+
+//returns object that has all currently open tabs
+function currentOpenTabs(){
+
+}
 
 document.addEventListener('DOMContentLoaded', function () {
-  var test = document.createTextNode("Script Succeeded");
+  var test = document.createTextNode("Script Succeeded 2");
  	debug = document.getElementById("debugging");   
   storage = chrome.storage.local; 
+
+  init_setup();
+  /*
   b_load.addEventListener('click', function() {
     tabs_load();
   });
@@ -121,18 +158,8 @@ document.addEventListener('DOMContentLoaded', function () {
     tabs_closeAll();
   });
 
-
-  /*storage.get('saved_session', function(items) {
-    if (items.saved_session) {
-      console.log(items.saved_session);
-      document.getElementById("cur_info_box").innerHTML += items.saved_session;
-    }
-    else {
-      console.log("BEGINNING LOAD FAILED!!!");
-    }
-  });
-  */
   load_data();
+  */
 
   debug.appendChild(test);
 
