@@ -3,7 +3,29 @@ var storage;
 var id_active;
 
 var sessionData;
+var activeTabs;
 /********************/
+
+// Helper functions
+function is_empty(obj) {
+    var hasOwnProperty = Object.prototype.hasOwnProperty;
+    // null and undefined are empty
+    if (obj == null) return true;
+    // Assume if it has a length property with a non-zero value
+    // that that property is correct.
+    if (obj.length && obj.length > 0)    return false;
+    if (obj.length === 0)  return true;
+
+    for (var key in obj) {
+        if (hasOwnProperty.call(obj, key))    return false;
+    }
+
+    // Doesn't handle toString and toValue enumeration bugs in IE < 9
+
+    return true;
+}
+
+// End Helper
 
 function load_data(){
   storage.get('saved_session', function(items) {
@@ -67,6 +89,41 @@ function tabs_load(){
   load_data();
 } //tabs_load
 
+// load open tabs to variable for access
+function loadOpenTabs() {
+  var open_tabs = [];
+
+  chrome.tabs.query({currentWindow: true}, function(tabs){
+    for(var i=0; i<tabs.length; i++)
+    {
+      open_tabs.push({
+        active: tabs[i].active,
+        url: tabs[i].url,
+        title: tabs[i].title
+      });
+    }
+
+    fillActiveInfo(open_tabs);
+
+    console.log("Open Tabs:\n" + JSON.stringify(activeTabs));
+  });
+}
+
+function fillActiveInfo(activeTabs) {
+  console.log("In active Info");
+  var active_info = document.getElementById("active_data");
+
+  var info_box_html = "<ul>";
+  for(var i=0; i<activeTabs.length; i++) {
+    var li_elem = "<li>" + activeTabs[i].title + "</li> \n";
+    info_box_html += li_elem;
+  }
+  info_box_html += "</ul>";
+
+  active_info.innerHTML = "";
+  active_info.innerHTML += info_box_html;
+}
+
 function tabs_closeAll(){
   chrome.tabs.query({currentWindow: true}, function(tabs){
     console.log("Total tabs: " + tabs.length);
@@ -101,28 +158,29 @@ function loadSavedSessions() {
 function onPopupLoad() {
   storage.get('sessionData', function(items) {
     if (items.sessionData) {
-      console.log(items.sessionData);
       sessionData = items.sessionData;
-    }
-    else {
+
+      console.log("got session data: "+items.sessionData);
+      sessionData = items.sessionData;
+
+      if(is_empty(sessionData.active_session)) {
+        console.log("No Active Session, listing open tabs");
+        document.getElementById("active_name").innerHTML = "Unsaved Session";
+        console.log("ACTIVE TABS: "+JSON.stringify(activeTabs));
+        loadOpenTabs();
+      }
+      //then render saved sessions
+    } else {
       console.log("No SessionData Setting Everything Up!!!");
       init_setup();
     }
-  });
-
-  if(sessionData.active_session == "") {
-    console.log("No Active Session, listing open tabs"); 
-  }
-
-  //then render saved sessions
-
-
+  }); //storage.get
 }
 
 //Initial setup function
 //called when extension first started or if local data is cleared
 function init_setup(){
-  var init_active = "";
+  var init_active = {};
   var init_saved = [];
 
   sessionData = {active_session: init_active, saved_sessions: init_saved};
@@ -140,11 +198,12 @@ function currentOpenTabs(){
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  var test = document.createTextNode("Script Succeeded 2");
+  var test = document.createTextNode("Script Succeeded");
  	debug = document.getElementById("debugging");   
   storage = chrome.storage.local; 
 
-  init_setup();
+  //init_setup();
+  onPopupLoad();
   /*
   b_load.addEventListener('click', function() {
     tabs_load();
