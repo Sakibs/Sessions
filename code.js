@@ -73,19 +73,16 @@ function tabs_save(sessionName){
 
     storage.get('sessionData', function(items) {
       if (items.sessionData) {
-        console.log("tabs_save: got sessionData");
         sessionData = JSON.parse(items.sessionData);
         // push new session data into the varaible and set it back in sessionData
-        console.log("**** sessionData before:\n" + JSON.stringify(sessionData));
         sessionData.saved_sessions.push(cur_session);
-        console.log("**** sessionData after:\n" + JSON.stringify(sessionData));
 
         storage.set({'sessionData' : JSON.stringify(sessionData)}, function() {
           console.log("tabs_save: overwrote sessionData");
+
+          // if storage successfully set, add entry to table
+          addRowToTable(cur_session);
         });
-
-        //TODO: send signal to update display
-
       }
       else {
         console.log("Save Error: local session data not found.");
@@ -144,18 +141,25 @@ function fillActiveInfo(activeTabs) {
   active_info.innerHTML += info_box_html;
 }
 
-function tabs_closeAll(){
+function closeAllAndActivate(newtabs){
   chrome.tabs.query({currentWindow: true}, function(tabs){
     console.log("Total tabs: " + tabs.length);
 
-    //create array to hold tab Ids and push all tab ids from query in.
+    //create array to hold tab Ids and push all currrent tab ids from query in.
     var tabIdArr = []
     for(var i=0; i<tabs.length; i++)
     {
       tabIdArr.push(tabs[i].id);
     }
 
-    chrome.tabs.create({url:"chrome://newtab"});
+    if(is_empty(newtabs)) {
+      chrome.tabs.create({url:"chrome://newtab"});
+    } else {
+      for(var i=0; i<newtabs.length; i++) {
+        chrome.tabs.create({url:newtabs[i].url, active:newtabs[i].active})
+      }
+    }
+
     chrome.tabs.remove(tabIdArr);   
   });
 }
@@ -181,6 +185,13 @@ function loadSavedSessions(saved_sessions) {
     row.id = saved_sessions[i].ID;
     createRowForEntry(row, saved_sessions[i]);
   }
+}
+
+function addRowToTable(newSession) {
+  var savedSessionsTable = document.getElementById("saved_container");
+  var row = savedSessionsTable.insertRow(-1);
+  row.id = newSession.ID;
+  createRowForEntry(row, newSession);
 }
 
 function createRowForEntry(row, session) {
@@ -245,12 +256,8 @@ function onPopupLoad() {
         loadOpenTabs();
       }
 
-      //loadSavedSessions(sessionData.saved_sessions);
-      //then render saved sessions
-      //console.log("listing sessions");
-      
+      //then load saved sessions      
       if(!is_empty(sessionData.saved_sessions)) {
-        //console.log("Init Load: found saved sessions");
         loadSavedSessions(sessionData.saved_sessions);
       }
       
@@ -284,7 +291,24 @@ function currentOpenTabs(){
 
 function loadSession(id) {
   console.log("** Session to load: "+id);
+    storage.get('sessionData', function(items) {
+    if (items.sessionData) {
+      sessionData = JSON.parse(items.sessionData);
+      var saved = sessionData.saved_sessions;
+      var i = 0;
+      
+      for (i=0; i<saved.length; i++) {
+        if(id == saved[i].ID) {
+          closeAllAndActivate(saved[i].tabInfo);
+          break;
+        }
+      }
+    } else {
+      console.log("loadSession: error loading sessionData");
+    }
+  });
 }
+
 
 function removeSession(id) {
   console.log("** Session to Remove: "+id);
@@ -331,11 +355,10 @@ document.addEventListener('DOMContentLoaded', function () {
     saveOpenTabs();
   });
 
-  /*b_new.addEventListener('click', function() {
-    //temp_loadSessions();
-    onPopupLoad();
+  b_new.addEventListener('click', function() {
+    closeAllAndActivate([]);
   });
-  */
+  
   //init_setup();
   onPopupLoad();
   /*
