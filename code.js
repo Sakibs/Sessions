@@ -55,7 +55,7 @@ function load_data(){
   }); //storage.get
 } //load_data
 
-function tabs_save(){
+function tabs_save(sessionName){
   var open_tabs = [];
 
   chrome.tabs.query({currentWindow: true}, function(tabs){
@@ -68,22 +68,42 @@ function tabs_save(){
       });
     }
 
-    var cur_session = { name: Date(), tab_info: open_tabs };
+    var d = new Date();
+    var cur_session = { ID: d.getTime(), name: sessionName, tabInfo: open_tabs };
 
-    storage.set({'saved_session': JSON.stringify(cur_session)}, function() {
-      console.log("data saved");
-    });
+    storage.get('sessionData', function(items) {
+      if (items.sessionData) {
+        console.log("tabs_save: got sessionData");
+        sessionData = JSON.parse(items.sessionData);
+        // push new session data into the varaible and set it back in sessionData
+        console.log("**** sessionData before:\n" + JSON.stringify(sessionData));
+        sessionData.saved_sessions.push(cur_session);
+        console.log("**** sessionData after:\n" + JSON.stringify(sessionData));
 
-    storage.get('saved_session', function(items) {
-      if (items.saved_session) {
-        console.log(items.saved_session);
+        storage.set({'sessionData' : JSON.stringify(sessionData)}, function() {
+          console.log("tabs_save: overwrote sessionData");
+        });
+
+        //TODO: send signal to update display
+
       }
       else {
-        console.log("FAILED!!!");
+        console.log("Save Error: local session data not found.");
       }
     });
   }); //chrome.tabs.query
 } //tabs_save
+
+
+function saveOpenTabs() {
+  var sessionName = document.getElementById("input_name").value;
+  if(sessionName == "") {
+    //display errors
+    alert("Name field empty");
+  } else {
+    tabs_save(sessionName);
+  }
+}
 
 function tabs_load(){
   load_data();
@@ -105,7 +125,7 @@ function loadOpenTabs() {
 
     fillActiveInfo(open_tabs);
 
-    console.log("Open Tabs:\n" + JSON.stringify(activeTabs));
+    //console.log("Open Tabs:\n" + JSON.stringify(activeTabs));
   });
 }
 
@@ -151,25 +171,90 @@ function saveSessionData() {
   });
 }
 
-function loadSavedSessions() {
-  
+
+// function to render html for saved sessions
+function loadSavedSessions(saved_sessions) {
+  var savedSessionsTable = document.getElementById("saved_container");
+
+  for (var i=0; i<saved_sessions.length; i++) {
+    var row = savedSessionsTable.insertRow(-1);
+    row.id = saved_sessions[i].ID;
+    createRowForEntry(row, saved_sessions[i]);
+  }
+}
+
+function createRowForEntry(row, session) {
+  var closeCell = row.insertCell(0);
+  var loadCell = row.insertCell(1);
+  var infoCell = row.insertCell(2);
+
+  var closeButton = document.createElement('button');
+  closeButton.className = "b_remove";
+  closeButton.innerHTML = 'x';
+  closeButton.onclick = function(){ removeSession(session.ID); };
+  closeCell.appendChild(closeButton);
+
+  var loadButton = document.createElement('button');
+  loadButton.className = "b_load";
+  loadButton.innerHTML = 'load';
+  loadButton.onclick = function(){ loadSession(session.ID); };
+  loadCell.appendChild(loadButton);
+
+  var seshName = document.createElement("h4");
+  seshName.innerHTML = session.name;
+
+  var seshTabsList = createListFromTabs(session.tabInfo);
+  infoCell.appendChild(seshName);
+  infoCell.appendChild(seshTabsList);
+
+}
+
+function createListFromTabs (tabInfo) {
+  var tabsList = document.createElement("ul");
+
+  for(var i=0; i<tabInfo.length; i++) {
+    var tabsListItem = document.createElement("li");
+    tabsListItem.innerHTML = tabInfo[i].title;
+    tabsList.appendChild(tabsListItem);
+  }
+  return tabsList;
+}
+
+function temp_loadSessions() {
+  storage.get('sessionData', function(items) {
+    if (items.sessionData) {
+      console.log("** About to load sessions");
+      var data = JSON.parse(items.sessionData);
+      loadSavedSessions(data.saved_sessions);
+    } else {
+      console.log("Failed to load data");
+    }
+  });
 }
 
 function onPopupLoad() {
   storage.get('sessionData', function(items) {
     if (items.sessionData) {
-      sessionData = items.sessionData;
+      sessionData = JSON.parse(items.sessionData);
 
       console.log("got session data: "+items.sessionData);
-      sessionData = items.sessionData;
-
+      //sessionData = items.sessionData;
+      console.log(sessionData.saved_sessions);
       if(is_empty(sessionData.active_session)) {
         console.log("No Active Session, listing open tabs");
-        document.getElementById("active_name").innerHTML = "Unsaved Session";
-        console.log("ACTIVE TABS: "+JSON.stringify(activeTabs));
         loadOpenTabs();
       }
+
+      //loadSavedSessions(sessionData.saved_sessions);
       //then render saved sessions
+      //console.log("listing sessions");
+      
+      if(!is_empty(sessionData.saved_sessions)) {
+        //console.log("Init Load: found saved sessions");
+        loadSavedSessions(sessionData.saved_sessions);
+      }
+      
+      
     } else {
       console.log("No SessionData Setting Everything Up!!!");
       init_setup();
@@ -197,11 +282,60 @@ function currentOpenTabs(){
 
 }
 
+function loadSession(id) {
+  console.log("** Session to load: "+id);
+}
+
+function removeSession(id) {
+  console.log("** Session to Remove: "+id);
+  storage.get('sessionData', function(items) {
+    if (items.sessionData) {
+      sessionData = JSON.parse(items.sessionData);
+      var saved = sessionData.saved_sessions;
+      var i = 0;
+      // remove from table
+      var table = document.getElementById("saved_container");
+      while (row=table.rows[i]) {
+        if(row.id == id)
+          table.deleteRow(i);
+        i++;
+      }
+      // remove from sessions data structure
+      for (i=0; i<saved.length; i++) {
+        if(id == saved[i].ID) {
+          // remove only one element with splice
+          saved.splice(i, 1);
+          break;
+        }
+      }
+      sessionData.saved_sessions = saved;
+
+      storage.set({'sessionData': JSON.stringify(sessionData)}, function() {
+        console.log("Updated sessionData after removing element");
+      });
+      
+    } else {
+      console.log("removeSession: error loading sessionData");
+    }
+  });
+
+}
+
+
 document.addEventListener('DOMContentLoaded', function () {
   var test = document.createTextNode("Script Succeeded");
  	debug = document.getElementById("debugging");   
   storage = chrome.storage.local; 
 
+  b_saveAs.addEventListener('click', function() {
+    saveOpenTabs();
+  });
+
+  /*b_new.addEventListener('click', function() {
+    //temp_loadSessions();
+    onPopupLoad();
+  });
+  */
   //init_setup();
   onPopupLoad();
   /*
@@ -219,7 +353,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   load_data();
   */
-
   debug.appendChild(test);
 
 });

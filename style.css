@@ -11,3 +11,29 @@ body {
 	overflow: scroll;
 }
 
+ul {
+	list-style-type: none;
+	padding: 0px 10px 0px 10px;
+	margin: 0;
+}
+
+h4,h3{
+	padding: 0px;
+    margin: 0px;
+}
+
+#saved_container tr {
+	vertical-align: top;
+}
+
+.b_remove {
+	color: red;
+}
+
+ul li ul {
+    display: none;
+} 
+
+a {
+    color: blue;
+}

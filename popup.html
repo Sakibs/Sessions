@@ -3,27 +3,44 @@
   <head>
     <title>Sessions Popup</title>
     <link rel="stylesheet" type="text/css" href="style.css" />
-    <script src="code.js"></script>
+    <script type="text/javascript" src="jquery-2.0.3.min.js"></script>
+    <script type="text/javascript" src="jquery-effects.js"></script>
+    <script type="text/javascript" src="code.js"></script>
   </head>
   <body>
     Sessions
     <hr>
     <button id="b_new" type="button">New</button>
-    <button id="b_saveAs" type="button">Save</button>
-    <input id="something" type="text" maxlength="50">
+    <button id="b_saveAs" type="button">Save as</button>
+    <input id="input_name" type="text" maxlength="50">
     <hr>
     <div id="active_info">
-      <div id="active_name">test </div> 
+      <div id="active_name"><h3>Open Tabs</h3></div> 
       <div id="active_data"> </div>
     </div>
     <hr>
     <div id="saved_info">
-      Saved Sessions
-      <div id="saved_ctnr"> </div>
+      <h3>Saved Sessions</h3>
+      <table id="saved_container">
+        <!-- Sample row entry for session
+        <tr>
+          <td><button id="id" class="b_remove">x</button></td>
+          <td><button id="id" class="b_load">load</button></td>
+          <td>
+            <h4>Name - #tabs</h4>
+            <ul>
+              <li>tab 1<li>
+              <li>tab 2</li>
+            </ul>
+        </tr>
+        -->
+      </table>
     </div>
     <hr>
     <div id="debugging">
-
     </div>
+
+    <div id="test"></div>
+
   </body>
 </html>

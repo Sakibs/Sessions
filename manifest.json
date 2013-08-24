@@ -6,6 +6,10 @@
   "version": "0.4",
 
   "permissions": ["tabs", "storage"],
+  "content_scripts": [{
+        "matches": ["chrome-extension://*/*"],
+        "js": ["jquery-2.0.3.min.js", "code.js", "jquery-effects.js"],
+  }],
   "browser_action": {
     "default_title": "Sessions",
     "default_popup": "popup.html"
