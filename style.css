@@ -1,5 +1,22 @@
 body {
-	width: 700px;
+	width: 500px;
+	background-image:url('images/back.png');
+	margin: 0;
+}
+
+#banner {
+	height: 25px;
+	background-image: url('images/banner_thin.png');
+	background-size: contain;
+}
+
+#logo {
+	float: right;
+	width: 80px;
+	height: 25px;
+	background-image: url('images/sessions.png');
+	background-size: contain;
+	background-repeat: no-repeat;
 }
 
 .cur_ctnr{
@@ -17,6 +34,17 @@ ul {
 	margin: 0;
 }
 
+li {
+	border-bottom: 1px solid #d7d7d7;
+}
+
+.sn_instance_tabs {
+	list-style-type: none;
+	padding: 0px 10px 0px 10px;
+	margin: 0;
+	display: none;
+}
+
 h4,h3{
 	padding: 0px;
     margin: 0px;
@@ -24,11 +52,49 @@ h4,h3{
 
 #saved_container tr {
 	vertical-align: top;
+	border-collapse:collapse;
 }
 
 .b_remove {
-	color: red;
+    background: url(images/close_idle.png);
+    border: 0;
+    background-size: 100%;
+    width: 15px;
+ 	height: 15px;
+ 	-webkit-transition: background-color 0.4s ease;
+    -moz-transition: background-color 0.4s ease;
+    -o-transition: background-color 0.4s ease;
+    transition: background-color 0.4s ease;
 }
+.b_remove:hover {
+	background: url(images/close_hover.png);
+	background-size: 100%;
+}
+.b_remove:active {
+	background: url(images/close_down.png);
+	background-size: 100%;
+}
+
+.b_load {
+	background: url(images/load_idle.png);
+    border: 0;
+    background-size: 100%;
+    width: 20px;
+ 	height: 20px;
+ 	-webkit-transition: background-color 1s ease;
+    -moz-transition: background-color 1s ease;
+    -o-transition: background-color 1s ease;
+    transition: background-color 1s ease;
+}
+.b_load:hover {
+	background: url(images/load_hover.png);
+	background-size: 100%;
+}
+.b_load:active {
+	background: url(images/load_down.png);
+	background-size: 100%;
+}
+
 
 ul li ul {
     display: none;

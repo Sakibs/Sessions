@@ -8,21 +8,20 @@ var activeTabs;
 
 // Helper functions
 function is_empty(obj) {
-    var hasOwnProperty = Object.prototype.hasOwnProperty;
-    // null and undefined are empty
-    if (obj == null) return true;
-    // Assume if it has a length property with a non-zero value
-    // that that property is correct.
-    if (obj.length && obj.length > 0)    return false;
-    if (obj.length === 0)  return true;
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
+  // null and undefined are empty
+  if (obj == null) return true;
+  // Assume if it has a length property with a non-zero value
+  // that that property is correct.
+  if (obj.length && obj.length > 0) return false;
+  if (obj.length === 0)  return true;
 
-    for (var key in obj) {
-        if (hasOwnProperty.call(obj, key))    return false;
-    }
+  for (var key in obj) {
+    if (hasOwnProperty.call(obj, key)) return false;
+  }
 
-    // Doesn't handle toString and toValue enumeration bugs in IE < 9
-
-    return true;
+  // Doesn't handle toString and toValue enumeration bugs in IE < 9
+  return true;
 }
 
 // End Helper
@@ -121,8 +120,6 @@ function loadOpenTabs() {
     }
 
     fillActiveInfo(open_tabs);
-
-    //console.log("Open Tabs:\n" + JSON.stringify(activeTabs));
   });
 }
 
@@ -130,15 +127,13 @@ function fillActiveInfo(activeTabs) {
   console.log("In active Info");
   var active_info = document.getElementById("active_data");
 
-  var info_box_html = "<ul>";
+  var info_box_html = document.createElement("ul");
   for(var i=0; i<activeTabs.length; i++) {
-    var li_elem = "<li>" + activeTabs[i].title + "</li> \n";
-    info_box_html += li_elem;
+    var li_elem = document.createElement("li");
+    li_elem.appendChild(document.createTextNode(activeTabs[i].title));
+    info_box_html.appendChild(li_elem);
   }
-  info_box_html += "</ul>";
-
-  active_info.innerHTML = "";
-  active_info.innerHTML += info_box_html;
+  active_info.appendChild(info_box_html)
 }
 
 function closeAllAndActivate(newtabs){
@@ -201,18 +196,20 @@ function createRowForEntry(row, session) {
 
   var closeButton = document.createElement('button');
   closeButton.className = "b_remove";
-  closeButton.innerHTML = 'x';
   closeButton.onclick = function(){ removeSession(session.ID); };
   closeCell.appendChild(closeButton);
 
   var loadButton = document.createElement('button');
   loadButton.className = "b_load";
-  loadButton.innerHTML = 'load';
   loadButton.onclick = function(){ loadSession(session.ID); };
   loadCell.appendChild(loadButton);
 
   var seshName = document.createElement("h4");
-  seshName.innerHTML = session.name;
+  seshName.innerHTML = session.name + " - " + session.tabInfo.length + " tabs";
+  seshName.className = "sn_instance_name";
+  seshName.onclick = function() {
+    $(this).parent().find('ul').slideToggle('fast');
+  }  
 
   var seshTabsList = createListFromTabs(session.tabInfo);
   infoCell.appendChild(seshName);
@@ -222,10 +219,11 @@ function createRowForEntry(row, session) {
 
 function createListFromTabs (tabInfo) {
   var tabsList = document.createElement("ul");
+  tabsList.className = "sn_instance_tabs";
 
   for(var i=0; i<tabInfo.length; i++) {
     var tabsListItem = document.createElement("li");
-    tabsListItem.innerHTML = tabInfo[i].title;
+    tabsListItem.appendChild(document.createTextNode(tabInfo[i].title));
     tabsList.appendChild(tabsListItem);
   }
   return tabsList;
@@ -284,11 +282,6 @@ function init_setup(){
 
 }
 
-//returns object that has all currently open tabs
-function currentOpenTabs(){
-
-}
-
 function loadSession(id) {
   console.log("** Session to load: "+id);
     storage.get('sessionData', function(items) {
@@ -308,7 +301,6 @@ function loadSession(id) {
     }
   });
 }
-
 
 function removeSession(id) {
   console.log("** Session to Remove: "+id);
@@ -359,23 +351,5 @@ document.addEventListener('DOMContentLoaded', function () {
     closeAllAndActivate([]);
   });
   
-  //init_setup();
   onPopupLoad();
-  /*
-  b_load.addEventListener('click', function() {
-    tabs_load();
-  });
-
-  b_save.addEventListener('click', function(){
-	  tabs_save();
-  });
-
-  b_closeAll.addEventListener('click', function(){
-    tabs_closeAll();
-  });
-
-  load_data();
-  */
-  debug.appendChild(test);
-
 });
