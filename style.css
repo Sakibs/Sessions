@@ -8,6 +8,7 @@ body {
 	height: 25px;
 	background-image: url('images/banner_thin.png');
 	background-size: contain;
+
 }
 
 #logo {
@@ -17,6 +18,13 @@ body {
 	background-image: url('images/sessions.png');
 	background-size: contain;
 	background-repeat: no-repeat;
+}
+
+#options {
+	float: left;
+	width: 400px;
+	height: 25px;
+	
 }
 
 .cur_ctnr{
@@ -32,6 +40,7 @@ ul {
 	list-style-type: none;
 	padding: 0px 10px 0px 10px;
 	margin: 0;
+	display: none;
 }
 
 li {
@@ -42,7 +51,6 @@ li {
 	list-style-type: none;
 	padding: 0px 10px 0px 10px;
 	margin: 0;
-	display: none;
 }
 
 h4,h3{

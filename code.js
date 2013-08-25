@@ -92,12 +92,13 @@ function tabs_save(sessionName){
 
 
 function saveOpenTabs() {
-  var sessionName = document.getElementById("input_name").value;
-  if(sessionName == "") {
+  var sessionName = document.getElementById("input_name");
+  if(sessionName.value == "") {
     //display errors
     alert("Name field empty");
   } else {
-    tabs_save(sessionName);
+    tabs_save(sessionName.value);
+    sessionName.value = "";
   }
 }
 
@@ -124,8 +125,13 @@ function loadOpenTabs() {
 }
 
 function fillActiveInfo(activeTabs) {
-  console.log("In active Info");
+  var title = document.createElement("h3");
+  title.appendChild(document.createTextNode("Currently Open: "+activeTabs.length+" tabs"));
+  title. onclick = function () {
+     $(this).parent().find('ul').slideToggle('fast');
+  }
   var active_info = document.getElementById("active_data");
+  active_info.appendChild(title);
 
   var info_box_html = document.createElement("ul");
   for(var i=0; i<activeTabs.length; i++) {
