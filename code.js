@@ -255,20 +255,17 @@ function onPopupLoad() {
       console.log("got session data: "+items.sessionData);
       //sessionData = items.sessionData;
       console.log(sessionData.saved_sessions);
-      if(is_empty(sessionData.active_session)) {
-        console.log("No Active Session, listing open tabs");
-        loadOpenTabs();
-      }
+      loadOpenTabs();
 
       //then load saved sessions      
       if(!is_empty(sessionData.saved_sessions)) {
         loadSavedSessions(sessionData.saved_sessions);
       }
       
-      
     } else {
       console.log("No SessionData Setting Everything Up!!!");
       init_setup();
+      loadOpenTabs();
     }
   }); //storage.get
 }

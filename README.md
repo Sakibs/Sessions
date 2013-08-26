@@ -3,4 +3,4 @@ Todo:
   - expand, collapse indicators
   - save to activated session
   - rename session
-  -  
+  - add export and import functionality  
