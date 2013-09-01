@@ -23,37 +23,30 @@ function is_empty(obj) {
   // Doesn't handle toString and toValue enumeration bugs in IE < 9
   return true;
 }
-
 // End Helper
 
-function load_data(){
-  storage.get('saved_session', function(items) {
-    if (items.saved_session) {
-      console.log(items.saved_session);
-      var session_data = JSON.parse(items.saved_session);
-      var name_box = document.getElementById("cur_name_box");
-      var info_box = document.getElementById("cur_info_box");
+// --------Save Functions-------- //
 
+/*
+  saveOpenTabs:
+    preliminary function that checks userinput and sends value to tabs_save
+*/
+function saveOpenTabs() {
+  var sessionName = document.getElementById("input_name");
+  if(sessionName.value == "") {
+    //display errors
+    alert("Name field empty");
+  } else {
+    tabs_save(sessionName.value);
+    sessionName.value = "";
+  }
+}
 
-      var tab_info = session_data.tab_info;
-      var info_box_html = "<ul>";
-      for(var i=0; i<tab_info.length; i++) {
-        var li_elem = "<li>" + tab_info[i].title + "</li> \n";
-        info_box_html += li_elem;
-      }
-      info_box_html += "</ul>";
-
-      name_box.innerHTML = "";
-      name_box.innerHTML += session_data.name;
-      info_box.innerHTML = "";
-      info_box.innerHTML += info_box_html;
-    }
-    else {
-      console.log("** Load_data Failed!");
-    }
-  }); //storage.get
-} //load_data
-
+/*
+  tabs_save:
+    gets tabs in current window and writes to sessionData 
+    once successfully set update table in popup
+*/
 function tabs_save(sessionName){
   var open_tabs = [];
 
@@ -89,93 +82,6 @@ function tabs_save(sessionName){
     });
   }); //chrome.tabs.query
 } //tabs_save
-
-
-function saveOpenTabs() {
-  var sessionName = document.getElementById("input_name");
-  if(sessionName.value == "") {
-    //display errors
-    alert("Name field empty");
-  } else {
-    tabs_save(sessionName.value);
-    sessionName.value = "";
-  }
-}
-
-function tabs_load(){
-  load_data();
-} //tabs_load
-
-// load open tabs to variable for access
-function loadOpenTabs() {
-  var open_tabs = [];
-
-  chrome.tabs.query({currentWindow: true}, function(tabs){
-    for(var i=0; i<tabs.length; i++)
-    {
-      open_tabs.push({
-        active: tabs[i].active,
-        url: tabs[i].url,
-        title: tabs[i].title
-      });
-    }
-
-    fillActiveInfo(open_tabs);
-  });
-}
-
-function fillActiveInfo(activeTabs) {
-  var title = document.createElement("h3");
-  title.appendChild(document.createTextNode("Currently Open: "+activeTabs.length+" tabs"));
-  title. onclick = function () {
-     $(this).parent().find('ul').slideToggle('fast');
-  }
-  var active_info = document.getElementById("active_data");
-  active_info.appendChild(title);
-
-  var info_box_html = document.createElement("ul");
-  for(var i=0; i<activeTabs.length; i++) {
-    var li_elem = document.createElement("li");
-    li_elem.appendChild(document.createTextNode(activeTabs[i].title));
-    info_box_html.appendChild(li_elem);
-  }
-  active_info.appendChild(info_box_html)
-}
-
-function closeAllAndActivate(newtabs){
-  chrome.tabs.query({currentWindow: true}, function(tabs){
-    console.log("Total tabs: " + tabs.length);
-
-    //create array to hold tab Ids and push all currrent tab ids from query in.
-    var tabIdArr = []
-    for(var i=0; i<tabs.length; i++)
-    {
-      tabIdArr.push(tabs[i].id);
-    }
-
-    if(is_empty(newtabs)) {
-      chrome.tabs.create({url:"chrome://newtab"});
-    } else {
-      for(var i=0; i<newtabs.length; i++) {
-        chrome.tabs.create({url:newtabs[i].url, active:newtabs[i].active})
-      }
-    }
-
-    chrome.tabs.remove(tabIdArr);   
-  });
-}
-
-function saveSessionData() {
-  storage.get('session_data', function(items) {
-    if (items.saved_session) {
-      console.log(items.saved_session);
-    }
-    else {
-      console.log("No SessionData Setting Everything Up!!!");
-    }
-  });
-}
-
 
 // function to render html for saved sessions
 function loadSavedSessions(saved_sessions) {
@@ -235,59 +141,77 @@ function createListFromTabs (tabInfo) {
   return tabsList;
 }
 
-function temp_loadSessions() {
-  storage.get('sessionData', function(items) {
-    if (items.sessionData) {
-      console.log("** About to load sessions");
-      var data = JSON.parse(items.sessionData);
-      loadSavedSessions(data.saved_sessions);
-    } else {
-      console.log("Failed to load data");
+/*
+  closeAllAndActivate:
+    function to close currently open tabs and activate a session or 
+    create a new session
+*/
+function closeAllAndActivate(newtabs){
+  chrome.tabs.query({currentWindow: true}, function(tabs){
+    console.log("Total tabs: " + tabs.length);
+
+    //create array to hold tab Ids and push all currrent tab ids from query in.
+    var tabIdArr = []
+    for(var i=0; i<tabs.length; i++)
+    {
+      tabIdArr.push(tabs[i].id);
     }
+
+    if(is_empty(newtabs)) {
+      chrome.tabs.create({url:"chrome://newtab"});
+    } else {
+      for(var i=0; i<newtabs.length; i++) {
+        chrome.tabs.create({url:newtabs[i].url, active:newtabs[i].active})
+      }
+    }
+
+    chrome.tabs.remove(tabIdArr);   
   });
 }
 
-function onPopupLoad() {
-  storage.get('sessionData', function(items) {
-    if (items.sessionData) {
-      sessionData = JSON.parse(items.sessionData);
+/*
+  loadOpenTabs: 
+    Function to load active tabs into currently active tabs div
+*/ 
+function loadOpenTabs() {
+  var open_tabs = [];
 
-      console.log("got session data: "+items.sessionData);
-      //sessionData = items.sessionData;
-      console.log(sessionData.saved_sessions);
-      if(is_empty(sessionData.active_session)) {
-        console.log("No Active Session, listing open tabs");
-        loadOpenTabs();
-      }
-
-      //then load saved sessions      
-      if(!is_empty(sessionData.saved_sessions)) {
-        loadSavedSessions(sessionData.saved_sessions);
-      }
-      
-      
-    } else {
-      console.log("No SessionData Setting Everything Up!!!");
-      init_setup();
+  chrome.tabs.query({currentWindow: true}, function(tabs){
+    for(var i=0; i<tabs.length; i++)
+    {
+      open_tabs.push({
+        active: tabs[i].active,
+        url: tabs[i].url,
+        title: tabs[i].title
+      });
     }
-  }); //storage.get
-}
 
-//Initial setup function
-//called when extension first started or if local data is cleared
-function init_setup(){
-  var init_active = {};
-  var init_saved = [];
-
-  sessionData = {active_session: init_active, saved_sessions: init_saved};
-  console.log(JSON.stringify(sessionData));
-
-  storage.set({'sessionData': JSON.stringify(sessionData)}, function() {
-      console.log("Initial data successfully saved.");
+    fillActiveInfo(open_tabs);
   });
-
 }
 
+function fillActiveInfo(activeTabs) {
+  var title = document.createElement("h3");
+  title.appendChild(document.createTextNode("Currently Open: "+activeTabs.length+" tabs"));
+  title. onclick = function () {
+     $(this).parent().find('ul').slideToggle('fast');
+  }
+  var active_info = document.getElementById("active_data");
+  active_info.appendChild(title);
+
+  var info_box_html = document.createElement("ul");
+  for(var i=0; i<activeTabs.length; i++) {
+    var li_elem = document.createElement("li");
+    li_elem.appendChild(document.createTextNode(activeTabs[i].title));
+    info_box_html.appendChild(li_elem);
+  }
+  active_info.appendChild(info_box_html)
+}
+
+/*
+  loadSession:
+    register user click and load session desired
+*/
 function loadSession(id) {
   console.log("** Session to load: "+id);
     storage.get('sessionData', function(items) {
@@ -339,6 +263,51 @@ function removeSession(id) {
     } else {
       console.log("removeSession: error loading sessionData");
     }
+  });
+}
+
+
+/* 
+  onPopupLoad
+    setup sessions popup html
+*/
+function onPopupLoad() {
+  storage.get('sessionData', function(items) {
+    if (items.sessionData) {
+      sessionData = JSON.parse(items.sessionData);
+
+      console.log("got session data: "+items.sessionData);
+      //sessionData = items.sessionData;
+      console.log(sessionData.saved_sessions);
+      if(is_empty(sessionData.active_session)) {
+        console.log("No Active Session, listing open tabs");
+        loadOpenTabs();
+      }
+
+      //then load saved sessions      
+      if(!is_empty(sessionData.saved_sessions)) {
+        loadSavedSessions(sessionData.saved_sessions);
+      }
+      
+      
+    } else {
+      console.log("No SessionData Setting Everything Up!!!");
+      init_setup();
+    }
+  }); //storage.get
+}
+
+//Initial setup function
+//called when extension first started or if local data is cleared
+function init_setup(){
+  var init_active = {};
+  var init_saved = [];
+
+  sessionData = {active_session: init_active, saved_sessions: init_saved};
+  console.log(JSON.stringify(sessionData));
+
+  storage.set({'sessionData': JSON.stringify(sessionData)}, function() {
+      console.log("Initial data successfully saved.");
   });
 
 }
