@@ -2,6 +2,7 @@ body {
 	width: 500px;
 	background-image:url('images/back.png');
 	margin: 0;
+	font-family: Arial;
 }
 
 #banner {
@@ -58,7 +59,8 @@ h4,h3{
     margin: 0px;
 }
 
-#saved_container tr {
+
+.top_align_table tr{
 	vertical-align: top;
 	border-collapse:collapse;
 }

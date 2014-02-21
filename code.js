@@ -26,34 +26,6 @@ function is_empty(obj) {
 
 // End Helper
 
-function load_data(){
-  storage.get('saved_session', function(items) {
-    if (items.saved_session) {
-      console.log(items.saved_session);
-      var session_data = JSON.parse(items.saved_session);
-      var name_box = document.getElementById("cur_name_box");
-      var info_box = document.getElementById("cur_info_box");
-
-
-      var tab_info = session_data.tab_info;
-      var info_box_html = "<ul>";
-      for(var i=0; i<tab_info.length; i++) {
-        var li_elem = "<li>" + tab_info[i].title + "</li> \n";
-        info_box_html += li_elem;
-      }
-      info_box_html += "</ul>";
-
-      name_box.innerHTML = "";
-      name_box.innerHTML += session_data.name;
-      info_box.innerHTML = "";
-      info_box.innerHTML += info_box_html;
-    }
-    else {
-      console.log("** Load_data Failed!");
-    }
-  }); //storage.get
-} //load_data
-
 function tabs_save(sessionName){
   var open_tabs = [];
 
@@ -88,23 +60,17 @@ function tabs_save(sessionName){
       }
     });
   }); //chrome.tabs.query
+  
 } //tabs_save
 
 
 function saveOpenTabs() {
   var sessionName = document.getElementById("input_name");
-  if(sessionName.value == "") {
-    //display errors
-    alert("Name field empty");
-  } else {
+  if(sessionName.value != "") {
     tabs_save(sessionName.value);
-    sessionName.value = "";
+    //sessionName.value = "";
   }
-}
-
-function tabs_load(){
-  load_data();
-} //tabs_load
+} // saveOpenTabs
 
 // load open tabs to variable for access
 function loadOpenTabs() {
@@ -120,12 +86,21 @@ function loadOpenTabs() {
       });
     }
 
+    // set the default name in name textfield
+    // format is first tab name + # open tabs
+    var currentTitle = open_tabs[0].title;
+    if(currentTitle.length > 20)
+      currentTitle = currentTitle.substring(0,20)+"... + "+(open_tabs.length-1)+" others";
+    else
+      currentTitle = currentTitle+" + "+(open_tabs.length-1)+" others";
+    document.getElementById("input_name").value = currentTitle;
+
     fillActiveInfo(open_tabs);
   });
 }
 
 function fillActiveInfo(activeTabs) {
-  var title = document.createElement("h3");
+  var title = document.createElement("h4");
   title.appendChild(document.createTextNode("Currently Open: "+activeTabs.length+" tabs"));
   title. onclick = function () {
      $(this).parent().find('ul').slideToggle('fast');
@@ -142,17 +117,85 @@ function fillActiveInfo(activeTabs) {
   active_info.appendChild(info_box_html)
 }
 
+function loadLastOpenTabs(previous){
+  if(!is_empty(previous)) {
+    var lastOpenTable = document.getElementById("last_open_data");
+    var row = lastOpenTable.insertRow(0);
+
+    var loadCell = row.insertCell(0);
+    var infoCell = row.insertCell(1);
+
+    var loadButton = document.createElement('button');
+    loadButton.className = "b_load";
+    loadButton.onclick = function(){ loadSession(0); };
+    loadCell.appendChild(loadButton);
+
+    var title = document.createElement("h4");
+    title.innerHTML = "Previous tabs: " + previous.tabInfo.length +" tabs";
+    title.onclick = function() {
+      $(this).parent().find('ul').slideToggle('fast');
+    } 
+
+    var lastTabsList = createListFromTabs(previous.tabInfo);
+    infoCell.appendChild(title);
+    infoCell.appendChild(lastTabsList);
+  }
+}
+
+// This function stores open tabs, closes the open tabs,
+// and opens the requested session
+function saveLastOpenTabs(id, tabs, newtabs, remove_ids) {
+  storage.get('sessionData', function(items) {
+    if (items.sessionData) {
+      var lastTabs = {
+        ID: id,
+        tabInfo: tabs
+      }
+
+      sessionData = JSON.parse(items.sessionData);
+      sessionData.previous_tabs = lastTabs;
+
+      storage.set({'sessionData' : JSON.stringify(sessionData)}, function() {
+        console.log("saveLastOpenTabs: overwrote sessionData");
+      });
+
+
+      if(is_empty(newtabs)) {
+        chrome.tabs.create({url:"chrome://newtab"});
+      } else {
+        for(var i=0; i<newtabs.length; i++) {
+          chrome.tabs.create({url:newtabs[i].url, active:newtabs[i].active});
+        }
+      }
+      chrome.tabs.remove(remove_ids);
+
+    }
+    else {
+      console.log("saveLastOpenTabs: getting sessionData failed. Major error");
+    }
+  });
+}
+
 function closeAllAndActivate(newtabs){
   chrome.tabs.query({currentWindow: true}, function(tabs){
     console.log("Total tabs: " + tabs.length);
 
     //create array to hold tab Ids and push all currrent tab ids from query in.
-    var tabIdArr = []
+    var tabIdArr = [];
+    var open_tabs = [];
     for(var i=0; i<tabs.length; i++)
     {
       tabIdArr.push(tabs[i].id);
+      open_tabs.push({
+        active: tabs[i].active,
+        url: tabs[i].url,
+        title: tabs[i].title
+      });
     }
-
+    saveLastOpenTabs(0, open_tabs, newtabs, tabIdArr);    
+    
+    //MOVE THIS CODE TO saveLastOpenTabs
+    /*
     if(is_empty(newtabs)) {
       chrome.tabs.create({url:"chrome://newtab"});
     } else {
@@ -160,8 +203,8 @@ function closeAllAndActivate(newtabs){
         chrome.tabs.create({url:newtabs[i].url, active:newtabs[i].active})
       }
     }
-
-    chrome.tabs.remove(tabIdArr);   
+    chrome.tabs.remove(tabIdArr);
+    */
   });
 }
 
@@ -229,22 +272,19 @@ function createListFromTabs (tabInfo) {
 
   for(var i=0; i<tabInfo.length; i++) {
     var tabsListItem = document.createElement("li");
-    tabsListItem.appendChild(document.createTextNode(tabInfo[i].title));
+    var link = document.createElement('a');
+  
+    link.setAttribute('href', tabInfo[i].url);
+    link.innerHTML = tabInfo[i].title;
+    link.onclick = function() {
+      //console.log(link.getAttribute('href'));
+      chrome.tabs.create({url:link.getAttribute('href')});
+    }
+    tabsListItem.appendChild(link);
+    //tabsListItem.appendChild(document.createTextNode(tabInfo[i].title));
     tabsList.appendChild(tabsListItem);
   }
   return tabsList;
-}
-
-function temp_loadSessions() {
-  storage.get('sessionData', function(items) {
-    if (items.sessionData) {
-      console.log("** About to load sessions");
-      var data = JSON.parse(items.sessionData);
-      loadSavedSessions(data.saved_sessions);
-    } else {
-      console.log("Failed to load data");
-    }
-  });
 }
 
 function onPopupLoad() {
@@ -257,6 +297,8 @@ function onPopupLoad() {
       console.log(sessionData.saved_sessions);
       loadOpenTabs();
 
+      loadLastOpenTabs(sessionData.previous_tabs);
+      console.log("loaded last open");
       //then load saved sessions      
       if(!is_empty(sessionData.saved_sessions)) {
         loadSavedSessions(sessionData.saved_sessions);
@@ -273,10 +315,16 @@ function onPopupLoad() {
 //Initial setup function
 //called when extension first started or if local data is cleared
 function init_setup(){
+  // TODO: Manage active sessions over different windows
   var init_active = {};
+  var last_open = {};
   var init_saved = [];
 
-  sessionData = {active_session: init_active, saved_sessions: init_saved};
+  sessionData = {
+    active_session: init_active, 
+    saved_sessions: init_saved, 
+    previous_tabs: last_open,
+  };
   console.log(JSON.stringify(sessionData));
 
   storage.set({'sessionData': JSON.stringify(sessionData)}, function() {
@@ -287,22 +335,31 @@ function init_setup(){
 
 function loadSession(id) {
   console.log("** Session to load: "+id);
-    storage.get('sessionData', function(items) {
+  
+  storage.get('sessionData', function(items) {
     if (items.sessionData) {
       sessionData = JSON.parse(items.sessionData);
-      var saved = sessionData.saved_sessions;
-      var i = 0;
       
-      for (i=0; i<saved.length; i++) {
-        if(id == saved[i].ID) {
-          closeAllAndActivate(saved[i].tabInfo);
-          break;
+      if(id == 0) {
+        //var activeID = sessionData.active_info.ID;        
+        var previous = sessionData.previous_tabs;
+        closeAllAndActivate(previous.tabInfo);
+      } else {
+        var saved = sessionData.saved_sessions;
+        var i = 0;
+        
+        for (i=0; i<saved.length; i++) {
+          if(id == saved[i].ID) {
+            closeAllAndActivate(saved[i].tabInfo);
+            break;
+          }
         }
-      }
+    }
     } else {
       console.log("loadSession: error loading sessionData");
     }
   });
+  
 }
 
 function removeSession(id) {
@@ -341,9 +398,11 @@ function removeSession(id) {
 }
 
 
+
+
 document.addEventListener('DOMContentLoaded', function () {
   var test = document.createTextNode("Script Succeeded");
- 	debug = document.getElementById("debugging");   
+  debug = document.getElementById("debugging");   
   storage = chrome.storage.local; 
 
   b_saveAs.addEventListener('click', function() {
@@ -354,5 +413,12 @@ document.addEventListener('DOMContentLoaded', function () {
     closeAllAndActivate([]);
   });
   
+  // handle save when user clicks enter
+  document.getElementById('input_name').onkeydown = function () {
+    if(event.keyCode == 13){
+      saveOpenTabs();
+    }
+  }
+
   onPopupLoad();
 });
